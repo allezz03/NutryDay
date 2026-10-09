@@ -94,18 +94,43 @@ function App() {
   }
   const removeLog = id => setLogs(prev => ({ ...prev, [date]: (prev[date] || []).filter(item => item.id !== id) }))
   const lookupBarcode = async (value = barcode) => {
-    const clean = String(value).replace(/\\D/g, '')
-    if (!/^\\d{8,14}$/.test(clean)) { setScannerError('Inserisci un codice a barre valido da 8 a 14 cifre.'); return }
-    setBarcode(clean); setBarcodeLoading(true); setScannerError(''); setBarcodeProduct(null)
-    try {
-      const response = await fetch(`/api/lookup-barcode?code=${encodeURIComponent(clean)}`)
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || 'Prodotto non trovato.')
-      setBarcodeProduct(result)
-    } catch (e) {
-      setScannerError(e.message || 'Impossibile cercare il prodotto. Se sei in locale, usa Vercel CLI per avviare anche le API.')
-    } finally { setBarcodeLoading(false) }
+const lookupBarcode = async (value = barcode) => {
+  const clean = String(value).replace(/[^0-9]/g, '');
+
+  if (clean.length < 8 || clean.length > 14) {
+    setScannerError(
+      'Inserisci un codice a barre valido da 8 a 14 cifre.'
+    );
+    return;
   }
+
+  setBarcode(clean);
+  setBarcodeLoading(true);
+  setScannerError('');
+  setBarcodeProduct(null);
+
+  try {
+    const response = await fetch(
+      `/api/lookup-barcode?code=${encodeURIComponent(clean)}`
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.error || 'Prodotto non trovato.'
+      );
+    }
+
+    setBarcodeProduct(result);
+  } catch (e) {
+    setScannerError(
+      e.message || 'Impossibile cercare il prodotto.'
+    );
+  } finally {
+    setBarcodeLoading(false);
+  }
+};
   const startScanner = async () => {
     setScannerError('')
     try {
