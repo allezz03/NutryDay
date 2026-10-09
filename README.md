@@ -11,7 +11,10 @@ Web app responsive in italiano, costruita con React + Vite. Include diario giorn
 - Foto del piatto e stima AI di calorie, proteine, carboidrati e grassi.
 - Scansione del codice a barre con fotocamera oppure inserimento manuale del codice.
 - Ricerca del prodotto e dei valori nutrizionali tramite Open Food Facts.
-- Dati salvati nel `localStorage` del browser.
+- Login personale con Google tramite Supabase Auth.
+- Diario e obiettivi sincronizzati nel database Supabase con Row Level Security.
+- Calendario mensile per consultare il diario e la dashboard di ogni giornata.
+- Importazione iniziale dei dati locali del browser, quando il database è ancora vuoto.
 - Interfaccia adattiva per desktop e smartphone.
 
 ## Avvio in locale
@@ -47,10 +50,13 @@ Crea una variabile d'ambiente `OPENAI_API_KEY` nel progetto Vercel o in un file 
 
 La scansione usa la fotocamera del browser tramite ZXing e cerca il codice nel database Open Food Facts. La fotocamera richiede un contesto sicuro (HTTPS; in locale localhost è consentito) e il permesso dell'utente. Se il prodotto non è nel database o i dati sono incompleti, puoi inserire l'alimento manualmente. I dati di Open Food Facts sono collaborativi: verifica l'etichetta fisica.
 
+## Login e database Supabase
+
+Segui tutti i passaggi in `SUPABASE_SETUP.md` e personalizza `supabase_setup.sql` con la tua email Google prima di eseguirlo. Configura `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` e `VITE_ALLOWED_EMAIL` nelle variabili d’ambiente di Vercel. Non usare mai la chiave `service_role` nel frontend.
+
 ## Limiti attuali / prossimi passi
 
 - Il catalogo alimenti iniziale è dimostrativo e non è un database nutrizionale completo.
-- I dati vengono salvati nel browser corrente: non sono sincronizzati tra dispositivi e possono andare persi cancellando i dati del browser.
 - L'analisi fotografica è una stima visiva; condimenti, ingredienti nascosti e peso reale possono causare differenze. Controlla i valori prima di registrare.
 - Per una versione multi-dispositivo si può aggiungere Supabase/Firebase con autenticazione, database e backup.
 - Prima di un uso prolungato, valuta limiti di upload, gestione della privacy, controllo dei costi e protezione da abusi sull'endpoint API.

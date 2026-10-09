@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { BrowserMultiFormatReader } from '@zxing/browser'
 import { createRoot } from 'react-dom/client'
 import {
   Activity, Apple, ArrowDownToLine, Barcode, Camera, Check, ChevronLeft, ChevronRight,
   CircleHelp, Flame, ImagePlus, Leaf, Plus, Search, Settings2, Sparkles,
-  Trash2, Utensils, X
+  Trash2, Utensils, X, CalendarDays, LogOut, Calendar
 } from 'lucide-react'
 import './styles.css'
 
@@ -26,10 +27,44 @@ const newId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const load = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
 }
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const allowedEmail = (import.meta.env.VITE_ALLOWED_EMAIL || '').trim().toLowerCase()
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+
 function App() {
+  const [session, setSession] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [authError, setAuthError] = useState('')
+  useEffect(() => {
+    if (!supabase) { setAuthLoading(false); return }
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthLoading(false) })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession))
+    return () => subscription.unsubscribe()
+  }, [])
+  const signIn = async () => {
+    setAuthError('')
+    if (!supabase) { setAuthError('Configura VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nelle variabili d’ambiente.'); return }
+    if (!allowedEmail) { setAuthError('Per proteggere l’accesso, imposta VITE_ALLOWED_EMAIL con la tua email Google prima di accedere.'); return }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
+    if (error) setAuthError(error.message)
+  }
+  if (authLoading) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Controllo della sessione in corso…</p></div></div>
+  if (!supabase) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Per attivare login e database, configura le variabili Supabase.</p><p className="auth-help">Apri il file <code>.env.example</code> nel progetto e segui la guida SUPABASE_SETUP.md.</p></div></div>
+  if (!allowedEmail) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Prima di accedere, configura <code>VITE_ALLOWED_EMAIL</code> con la tua email Google e applica la stessa email nelle policy RLS dello script SQL.</p><p className="auth-foot">Questo passaggio limita l'accesso al tuo account.</p></div></div>
+  if (!session) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><div className="eyebrow">IL TUO DIARIO PERSONALE</div><h1>NutriDay</h1><p>Accedi per ritrovare il tuo diario alimentare, da qualsiasi dispositivo.</p><button className="google-login" onClick={signIn}><GoogleMark/> Continua con Google</button>{authError && <p className="error-message">{authError}</p>}<p className="auth-foot">Accesso personale protetto · Dati sincronizzati con Supabase</p></div></div>
+  if (session.user.email?.toLowerCase() !== allowedEmail) return <div className="auth-screen"><div className="auth-card"><h1>Accesso non autorizzato</h1><p>Questo account Google non è autorizzato a usare questa istanza di NutriDay.</p><button className="google-login" onClick={() => supabase.auth.signOut()}>Esci</button></div></div>
+  return <DiaryApp session={session} supabase={supabase} onSignOut={() => supabase.auth.signOut()} />
+}
+function GoogleMark() { return <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 3.01 13.22l7.98 6.19C12.88 13.72 18.02 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.9 46.98 31.7 46.98 24.55z"/><path fill="#FBBC05" d="M10.99 28.59A14.4 14.4 0 0 1 10.25 24c0-1.59.27-3.13.74-4.59l-7.98-6.19A23.9 23.9 0 0 0 .02 24c0 3.87.93 7.53 2.99 10.78l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.14 1.44-4.88 2.3-8.17 2.3-5.98 0-11.12-4.22-13.01-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> }
+
+function DiaryApp({ session, supabase, onSignOut }) {
   const [date, setDate] = useState(todayKey())
-  const [logs, setLogs] = useState(() => load('nutriday-logs', {}))
-  const [goals, setGoals] = useState(() => load('nutriday-goals', starterGoals))
+  const [logs, setLogs] = useState({})
+  const [goals, setGoals] = useState(starterGoals)
+  const [dataLoading, setDataLoading] = useState(true)
+  const [dataError, setDataError] = useState('')
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1))
   const [modal, setModal] = useState('')
   const [meal, setMeal] = useState('Colazione')
   const [query, setQuery] = useState('')
@@ -49,7 +84,6 @@ function App() {
   const [barcodeProduct, setBarcodeProduct] = useState(null)
   const [scannerError, setScannerError] = useState('')
 
-  useEffect(() => { localStorage.setItem('nutriday-logs', JSON.stringify(logs)) }, [logs])
   useEffect(() => {
     if (modal !== 'barcode') {
       try { scannerControls.current?.stop() } catch {}
@@ -60,7 +94,52 @@ function App() {
       scannerControls.current = null
     }
   }, [modal])
-  useEffect(() => { localStorage.setItem('nutriday-goals', JSON.stringify(goals)) }, [goals])
+  useEffect(() => {
+    let cancelled = false
+    const loadRemoteData = async () => {
+      setDataLoading(true); setDataError('')
+      const userId = session.user.id
+      const [{ data: rows, error: logsError }, { data: goalRow, error: goalsError }] = await Promise.all([
+        supabase.from('daily_logs').select('log_date, entries').eq('user_id', userId),
+        supabase.from('user_goals').select('goals').eq('user_id', userId).maybeSingle()
+      ])
+      if (cancelled) return
+      if (logsError || goalsError) { setDataError('Non riesco a caricare il database. Verifica di aver eseguito lo script SQL SUPABASE_SETUP.md.'); setDataLoading(false); return }
+      let remoteLogs = Object.fromEntries((rows || []).map(row => [row.log_date, row.entries || []]))
+      const localLogs = load('nutriday-logs', {})
+      if (!Object.keys(remoteLogs).length && Object.keys(localLogs).length) {
+        const migrationRows = Object.entries(localLogs).filter(([, entries]) => entries?.length).map(([log_date, entries]) => ({ user_id: userId, log_date, entries }))
+        if (migrationRows.length) {
+          const { error } = await supabase.from('daily_logs').upsert(migrationRows, { onConflict: 'user_id,log_date' })
+          if (!error) remoteLogs = localLogs
+          else setDataError('Non è stato possibile importare il diario salvato in questo browser. I dati locali restano intatti.')
+        }
+      }
+      setLogs(remoteLogs)
+      const remoteGoals = goalRow?.goals
+      if (remoteGoals) setGoals(remoteGoals)
+      else {
+        const localGoals = load('nutriday-goals', starterGoals)
+        setGoals(localGoals)
+        const { error } = await supabase.from('user_goals').upsert({ user_id: userId, goals: localGoals }, { onConflict: 'user_id' })
+        if (error) setDataError('Diario caricato, ma non sono riuscito a salvare gli obiettivi nel database.')
+      }
+      setDataLoading(false)
+    }
+    loadRemoteData()
+    return () => { cancelled = true }
+  }, [session.user.id, supabase])
+
+  const persistDay = async (day, entries) => {
+    setDataError('')
+    const { error } = await supabase.from('daily_logs').upsert({ user_id: session.user.id, log_date: day, entries }, { onConflict: 'user_id,log_date' })
+    if (error) setDataError('Salvataggio non riuscito. Controlla la connessione e le policy Supabase.')
+  }
+  const persistGoals = async nextGoals => {
+    setDataError('')
+    const { error } = await supabase.from('user_goals').upsert({ user_id: session.user.id, goals: nextGoals }, { onConflict: 'user_id' })
+    if (error) setDataError('Obiettivi aggiornati sullo schermo, ma non salvati nel database.')
+  }
 
   const dayLogs = logs[date] || []
   const totals = useMemo(() => dayLogs.reduce((acc, item) => ({
@@ -88,11 +167,13 @@ function App() {
       fat_g: Math.round(Number(food.fat_g) * factor * 10) / 10,
       source: food.source || 'manual'
     }
-    setLogs(prev => ({ ...prev, [date]: [...(prev[date] || []), item] }))
+    const nextDay = [...(logs[date] || []), item]
+    setLogs(prev => ({ ...prev, [date]: nextDay }))
+    persistDay(date, nextDay)
     setModal('')
     setSelected(null); setQuery(''); setAnalysis(null); setPhoto(null); setError('')
   }
-  const removeLog = id => setLogs(prev => ({ ...prev, [date]: (prev[date] || []).filter(item => item.id !== id) }))
+  const removeLog = id => { const nextDay = (logs[date] || []).filter(item => item.id !== id); setLogs(prev => ({ ...prev, [date]: nextDay })); persistDay(date, nextDay) }
   const lookupBarcode = async (value = barcode) => {
   const clean = String(value).replace(/[^0-9]/g, '');
 
@@ -173,19 +254,28 @@ function App() {
   }
   const displayDate = date === todayKey() ? 'Oggi' : new Date(`${date}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
   const formatLongDate = new Date(`${date}T12:00:00`).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
+  const monthLabel = calendarMonth.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
+  const firstWeekday = (new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay() + 6) % 7
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate()
+  const calendarCells = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
 
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><Leaf size={23}/></div><span>nutri<span className="brand-light">day</span></span></div>
       <div className="side-label">IL TUO SPAZIO</div>
       <button className="nav-item active"><Activity size={18}/> Riepilogo</button>
+      <button className="nav-item" onClick={() => document.getElementById('history-calendar')?.scrollIntoView({ behavior: 'smooth' })}><CalendarDays size={18}/> Calendario storico</button>
       <button className="nav-item" onClick={() => openAdd('Colazione')}><Utensils size={18}/> Diario alimentare</button>
       <button className="nav-item" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={18}/> I tuoi obiettivi</button>
-      <div className="sidebar-bottom"><div className="side-tip"><Sparkles size={18}/><b>Un passo alla volta</b><p>La costanza conta più della perfezione.</p></div><div className="privacy-note"><span className="privacy-dot"/> I tuoi dati restano su questo dispositivo</div></div>
+      <div className="sidebar-bottom"><div className="side-tip"><Sparkles size={18}/><b>Un passo alla volta</b><p>La costanza conta più della perfezione.</p></div><div className="privacy-note"><span className="privacy-dot"/> Diario sincronizzato in modo protetto</div></div>
     </aside>
     <main className="main-content">
-      <header className="topbar"><div><div className="eyebrow">IL TUO DIARIO ALIMENTARE</div><h1>Buongiorno 👋</h1><p className="subheading">Prenditi cura di te, un pasto alla volta.</p></div><button className="goal-button" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={17}/> Obiettivi</button></header>
+      <header className="topbar"><div><div className="eyebrow">IL TUO DIARIO ALIMENTARE</div><h1>Buongiorno 👋</h1><p className="subheading">Prenditi cura di te, un pasto alla volta.</p></div><div className="topbar-actions"><span className="user-email">{session.user.email}</span><button className="goal-button" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={17}/> Obiettivi</button><button className="signout-button" onClick={onSignOut} title="Esci" aria-label="Esci"><LogOut size={17}/></button></div></header>
+      {dataLoading && <div className="sync-notice">Caricamento del diario dal database…</div>}
+      {dataError && <div className="sync-error">{dataError}</div>}
       <div className="date-row"><div><span className="date-caption">RIEPILOGO DEL</span><h2>{formatLongDate.charAt(0).toUpperCase() + formatLongDate.slice(1)}</h2></div><div className="date-controls"><button aria-label="Giorno precedente" onClick={() => changeDate(-1)}><ChevronLeft size={19}/></button><span>{displayDate}</span><button aria-label="Giorno successivo" onClick={() => changeDate(1)}><ChevronRight size={19}/></button><button className="today-button" onClick={() => setDate(todayKey())}>Oggi</button></div></div>
+
+      <section id="history-calendar" className="calendar-card"><div className="calendar-heading"><div><span className="date-caption">IL TUO STORICO</span><h3>Calendario alimentare</h3><p>Seleziona una giornata per rivedere il diario e la dashboard.</p></div><div className="calendar-month-controls"><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} aria-label="Mese precedente"><ChevronLeft size={17}/></button><b>{monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1)}</b><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 1))} aria-label="Mese successivo"><ChevronRight size={17}/></button></div></div><div className="calendar-grid">{['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(day => <span className="calendar-weekday" key={day}>{day}</span>)}{calendarCells.map((day, index) => { if (!day) return <span className="calendar-empty" key={'empty-'+index}/>; const key = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; const count = (logs[key] || []).length; return <button key={key} className={`calendar-day ${date===key?'selected':''} ${count?'has-entries':''} ${key===todayKey()?'is-today':''}`} onClick={() => { setDate(key); document.querySelector('.date-row')?.scrollIntoView({behavior:'smooth',block:'start'}) }}><span>{day}</span>{count>0 && <i title={`${count} alimenti registrati`}/>}</button> })}</div><div className="calendar-legend"><span><i/> Giorni con alimenti registrati</span><button onClick={() => { setDate(todayKey()); setCalendarMonth(new Date(new Date().getFullYear(),new Date().getMonth(),1)) }}>Torna a oggi</button></div></section>
 
       <section className="overview-grid">
         <div className="calorie-card">
@@ -253,7 +343,7 @@ function App() {
           </div>}
           <p className="disclaimer">La disponibilità e la completezza dei dati dipendono dal database e dalle informazioni inserite per ciascun prodotto. Controlla sempre l’etichetta della confezione.</p>
         </div>}
-        {modal === 'goals' && <div className="modal-body"><p className="modal-intro">Imposta i tuoi obiettivi giornalieri. Puoi cambiarli in qualsiasi momento.</p><div className="goal-fields">{[['calories','Calorie','kcal'],['protein','Proteine','g'],['carbs','Carboidrati','g'],['fat','Grassi','g']].map(([key,label,unit]) => <label key={key}>{label}<div className="goal-input"><input type="number" min="1" value={editingGoals[key]} onChange={e => setEditingGoals({...editingGoals,[key]:Math.max(1,Number(e.target.value))})}/><span>{unit}</span></div></label>)}</div><button className="primary-full" onClick={() => { setGoals(editingGoals); setModal('') }}><Check size={17}/> Salva obiettivi</button><p className="hint">Se non sai quali obiettivi impostare, puoi parlarne con un dietista o un professionista sanitario.</p></div>}
+        {modal === 'goals' && <div className="modal-body"><p className="modal-intro">Imposta i tuoi obiettivi giornalieri. Puoi cambiarli in qualsiasi momento.</p><div className="goal-fields">{[['calories','Calorie','kcal'],['protein','Proteine','g'],['carbs','Carboidrati','g'],['fat','Grassi','g']].map(([key,label,unit]) => <label key={key}>{label}<div className="goal-input"><input type="number" min="1" value={editingGoals[key]} onChange={e => setEditingGoals({...editingGoals,[key]:Math.max(1,Number(e.target.value))})}/><span>{unit}</span></div></label>)}</div><button className="primary-full" onClick={() => { setGoals(editingGoals); persistGoals(editingGoals); setModal('') }}><Check size={17}/> Salva obiettivi</button><p className="hint">Se non sai quali obiettivi impostare, puoi parlarne con un dietista o un professionista sanitario.</p></div>}
       </div>
     </div>}
   </div>
