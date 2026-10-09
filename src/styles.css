@@ -137,3 +137,7 @@ button:active{transform:translateY(1px)}
   .mobile-scan-food{background:#f5f2ff;border:1px solid #e5def7;color:#7564a4;padding:0 11px}
   .date-row{margin-bottom:14px}.overview-grid{display:none}.quick-actions{display:none}
 }
+
+/* Mobile usability and personal calorie profile */
+.modal-backdrop{z-index:40;padding-bottom:calc(20px + env(safe-area-inset-bottom))}.modal{position:relative;z-index:41}.food-search-results{max-height:min(32vh,260px);overscroll-behavior:contain}.modal-body{padding-bottom:calc(26px + env(safe-area-inset-bottom))}.profile-section-title{font:750 13px Manrope,sans-serif;color:#35463a;margin:18px 0 12px}.profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.profile-fields label{min-width:0;display:flex;flex-direction:column;gap:6px;font-size:10px;font-weight:700;color:#69776c}.profile-fields .field{min-width:0;padding:10px 9px;font-size:12px}.profile-goals-title{margin-top:23px}.modal .secondary-full{margin-top:14px}
+@media(max-width:650px){.modal-backdrop{z-index:40;align-items:end;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}.modal{max-height:calc(92dvh - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom)}.food-search-results{max-height:30dvh}.modal-body{padding-bottom:calc(26px + env(safe-area-inset-bottom))}.profile-fields{gap:10px}.profile-fields .field{font-size:16px}.goal-input input{font-size:16px}}
