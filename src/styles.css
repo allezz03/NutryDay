@@ -118,3 +118,22 @@ button:active{transform:translateY(1px)}
   body{background:var(--canvas)}.main-content{padding:22px 14px calc(112px + env(safe-area-inset-bottom))}.topbar{margin-bottom:22px}.topbar h1{font-size:26px}.overview-grid{gap:12px}.calorie-card,.macro-card{border-radius:20px;padding:20px}.calorie-main strong{font-size:39px}.quick-actions{border-radius:19px;padding:18px;margin:19px 0 25px}.meal-list{grid-template-columns:minmax(0,1fr);gap:11px}.meal-card{border-radius:16px;padding:0 14px}.meal-header{min-height:72px}.calendar-page{padding:16px 12px;border-radius:20px}.calendar-heading{flex-direction:column;gap:14px;margin-bottom:16px}.calendar-heading h3{font-size:19px}.calendar-heading p{font-size:11px}.calendar-month-controls{align-self:stretch;justify-content:space-between}.calendar-month-controls b{flex:1}.calendar-grid{gap:4px}.calendar-weekday{font-size:9px;padding:7px 0}.calendar-day,.calendar-empty{min-height:clamp(39px,11.5vw,52px)}.calendar-day{border-radius:10px;font-size:11px;gap:5px}.calendar-legend{align-items:flex-start;flex-direction:column;gap:8px}.calendar-legend button{padding:8px 0}.modal-backdrop{padding:10px;align-items:end}.modal{width:100%;max-height:88dvh;border-radius:22px 22px 16px 16px}.modal-head{padding:20px 20px 15px}.modal-body{padding:18px 20px 22px}.food-search-results{max-height:28vh}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Mobile-first quick nutrition summary and food entry */
+.mobile-quick-panel{display:none}
+@media(max-width:650px){
+  .mobile-quick-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin:0 0 20px;padding:12px;background:#fff;border:1px solid #e3ebe0;border-radius:18px;box-shadow:0 7px 24px rgba(35,65,42,.055)}
+  .mobile-metric-buttons{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .mobile-metric{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;padding:8px 2px;border:1px solid transparent;border-radius:12px;background:#f8faf7;color:#35483a}
+  .mobile-metric.selected{background:#edf5eb;border-color:#cfe1ca}
+  .mobile-metric-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;font-size:12px;font-weight:800}
+  .mobile-metric-icon.calories{background:#fff0df;color:#b77936}.mobile-metric-icon.protein{background:#e7f3e7;color:#397751}.mobile-metric-icon.carbs{background:#fff3df;color:#b88735}.mobile-metric-icon.fat{background:#f0ebfa;color:#8170b4}
+  .mobile-metric>span:last-child{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+  .mobile-metric b{font-size:11px;line-height:1.2;white-space:nowrap}.mobile-metric small{font-size:9px;color:#839084;white-space:nowrap}
+  .mobile-metric-detail{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;gap:6px 10px;padding:10px 11px;border-radius:11px;background:#f6f9f4;font-size:11px;color:#667568}
+  .mobile-metric-detail b{color:#304b37}.mobile-metric-detail span{text-align:right}.mobile-metric-detail .progress-track{grid-column:1/-1;height:5px}.mobile-metric-detail .progress-track>div{background:linear-gradient(90deg,#4c8b5b,#80ad70)}
+  .mobile-add-food,.mobile-scan-food{display:flex;align-items:center;justify-content:center;gap:7px;min-height:43px;border-radius:12px;font-size:11px;font-weight:750;white-space:nowrap}
+  .mobile-add-food{background:#286744;border:1px solid #286744;color:white;box-shadow:0 5px 12px rgba(40,103,68,.15)}
+  .mobile-scan-food{background:#f5f2ff;border:1px solid #e5def7;color:#7564a4;padding:0 11px}
+  .date-row{margin-bottom:14px}.overview-grid{display:none}.quick-actions{display:none}
+}
