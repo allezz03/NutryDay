@@ -60,6 +60,7 @@ function GoogleMark() { return <svg width="18" height="18" viewBox="0 0 48 48" a
 
 function DiaryApp({ session, supabase, onSignOut }) {
   const [date, setDate] = useState(todayKey())
+  const [page, setPage] = useState('dashboard')
   const [logs, setLogs] = useState({})
   const [goals, setGoals] = useState(starterGoals)
   const [dataLoading, setDataLoading] = useState(true)
@@ -253,6 +254,7 @@ function DiaryApp({ session, supabase, onSignOut }) {
     } finally { setAnalyzing(false) }
   }
   const displayDate = date === todayKey() ? 'Oggi' : new Date(`${date}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+  const accountName = (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.user_metadata?.given_name || session.user.email?.split('@')[0] || 'utente').trim().split(/\s+/)[0]
   const formatLongDate = new Date(`${date}T12:00:00`).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
   const monthLabel = calendarMonth.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
   const firstWeekday = (new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay() + 6) % 7
@@ -263,19 +265,18 @@ function DiaryApp({ session, supabase, onSignOut }) {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><Leaf size={23}/></div><span>nutri<span className="brand-light">day</span></span></div>
       <div className="side-label">IL TUO SPAZIO</div>
-      <button className="nav-item active"><Activity size={18}/> Riepilogo</button>
-      <button className="nav-item" onClick={() => document.getElementById('history-calendar')?.scrollIntoView({ behavior: 'smooth' })}><CalendarDays size={18}/> Calendario storico</button>
+      <button className={`nav-item ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}><Activity size={18}/> Riepilogo</button>
+      <button className={`nav-item ${page === 'calendar' ? 'active' : ''}`} onClick={() => setPage('calendar')}><CalendarDays size={18}/> Calendario storico</button>
       <button className="nav-item" onClick={() => openAdd('Colazione')}><Utensils size={18}/> Diario alimentare</button>
       <button className="nav-item" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={18}/> I tuoi obiettivi</button>
       <div className="sidebar-bottom"><div className="side-tip"><Sparkles size={18}/><b>Un passo alla volta</b><p>La costanza conta più della perfezione.</p></div><div className="privacy-note"><span className="privacy-dot"/> Diario sincronizzato in modo protetto</div></div>
     </aside>
     <main className="main-content">
-      <header className="topbar"><div><div className="eyebrow">IL TUO DIARIO ALIMENTARE</div><h1>Buongiorno 👋</h1><p className="subheading">Prenditi cura di te, un pasto alla volta.</p></div><div className="topbar-actions"><span className="user-email">{session.user.email}</span><button className="goal-button" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={17}/> Obiettivi</button><button className="signout-button" onClick={onSignOut} title="Esci" aria-label="Esci"><LogOut size={17}/></button></div></header>
+      <header className="topbar"><div><div className="eyebrow">IL TUO DIARIO ALIMENTARE</div><h1>Buongiorno {accountName} 👋</h1><p className="subheading">Prenditi cura di te, un pasto alla volta.</p></div><div className="topbar-actions"><span className="user-email">{session.user.email}</span><button className="goal-button" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={17}/> Obiettivi</button><button className="signout-button" onClick={onSignOut} title="Esci" aria-label="Esci"><LogOut size={17}/></button></div></header>
       {dataLoading && <div className="sync-notice">Caricamento del diario dal database…</div>}
       {dataError && <div className="sync-error">{dataError}</div>}
+      {page === 'calendar' ? <section id="history-calendar" className="calendar-card calendar-page"><div className="calendar-heading"><div><span className="date-caption">IL TUO STORICO</span><h3>Calendario alimentare</h3><p>Seleziona un giorno per aprire la dashboard e consultare i pasti registrati.</p></div><div className="calendar-month-controls"><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} aria-label="Mese precedente"><ChevronLeft size={17}/></button><b>{monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1)}</b><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 1))} aria-label="Mese successivo"><ChevronRight size={17}/></button></div></div><div className="calendar-grid">{['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(day => <span className="calendar-weekday" key={day}>{day}</span>)}{calendarCells.map((day, index) => { if (!day) return <span className="calendar-empty" key={'empty-'+index}/>; const key = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; const count = (logs[key] || []).length; return <button key={key} className={`calendar-day ${date===key?'selected':''} ${count?'has-entries':''} ${key===todayKey()?'is-today':''}`} onClick={() => { setDate(key); setPage('dashboard') }}><span>{day}</span>{count>0 && <i title={`${count} alimenti registrati`}/>}</button> })}</div><div className="calendar-legend"><span><i/> Giorni con alimenti registrati</span><button onClick={() => { setDate(todayKey()); setCalendarMonth(new Date(new Date().getFullYear(),new Date().getMonth(),1)); setPage('dashboard') }}>Torna alla dashboard di oggi</button></div></section> : <>
       <div className="date-row"><div><span className="date-caption">RIEPILOGO DEL</span><h2>{formatLongDate.charAt(0).toUpperCase() + formatLongDate.slice(1)}</h2></div><div className="date-controls"><button aria-label="Giorno precedente" onClick={() => changeDate(-1)}><ChevronLeft size={19}/></button><span>{displayDate}</span><button aria-label="Giorno successivo" onClick={() => changeDate(1)}><ChevronRight size={19}/></button><button className="today-button" onClick={() => setDate(todayKey())}>Oggi</button></div></div>
-
-      <section id="history-calendar" className="calendar-card"><div className="calendar-heading"><div><span className="date-caption">IL TUO STORICO</span><h3>Calendario alimentare</h3><p>Seleziona una giornata per rivedere il diario e la dashboard.</p></div><div className="calendar-month-controls"><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} aria-label="Mese precedente"><ChevronLeft size={17}/></button><b>{monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1)}</b><button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 1))} aria-label="Mese successivo"><ChevronRight size={17}/></button></div></div><div className="calendar-grid">{['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(day => <span className="calendar-weekday" key={day}>{day}</span>)}{calendarCells.map((day, index) => { if (!day) return <span className="calendar-empty" key={'empty-'+index}/>; const key = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; const count = (logs[key] || []).length; return <button key={key} className={`calendar-day ${date===key?'selected':''} ${count?'has-entries':''} ${key===todayKey()?'is-today':''}`} onClick={() => { setDate(key); document.querySelector('.date-row')?.scrollIntoView({behavior:'smooth',block:'start'}) }}><span>{day}</span>{count>0 && <i title={`${count} alimenti registrati`}/>}</button> })}</div><div className="calendar-legend"><span><i/> Giorni con alimenti registrati</span><button onClick={() => { setDate(todayKey()); setCalendarMonth(new Date(new Date().getFullYear(),new Date().getMonth(),1)) }}>Torna a oggi</button></div></section>
 
       <section className="overview-grid">
         <div className="calorie-card">
@@ -305,6 +306,7 @@ function DiaryApp({ session, supabase, onSignOut }) {
         })}</div>
       </section>
       <footer><span>nutriday <span className="footer-sep">·</span> Il tuo percorso, il tuo ritmo.</span><span><CircleHelp size={14}/> Le stime nutrizionali sono indicative.</span></footer>
+      </>}
     </main>
 
     {modal && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setModal('') }}>
