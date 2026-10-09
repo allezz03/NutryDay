@@ -94,7 +94,6 @@ function App() {
   }
   const removeLog = id => setLogs(prev => ({ ...prev, [date]: (prev[date] || []).filter(item => item.id !== id) }))
   const lookupBarcode = async (value = barcode) => {
-const lookupBarcode = async (value = barcode) => {
   const clean = String(value).replace(/[^0-9]/g, '');
 
   if (clean.length < 8 || clean.length > 14) {
