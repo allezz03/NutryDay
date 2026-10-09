@@ -5,7 +5,7 @@ Questa versione mantiene scanner barcode, ricerca Open Food Facts, inserimento m
 ## 1. Crea il progetto Supabase
 1. Vai su https://supabase.com e crea un progetto.
 2. In **Project Settings → API** copia Project URL e la chiave **publishable** (o anon legacy). Non usare mai `service_role` nel frontend.
-3. In **SQL Editor**, apri `supabase_setup.sql`, sostituisci entrambe le occorrenze di `YOUR_GOOGLE_EMAIL@example.com` con la tua email Google e premi Run.
+3. In **SQL Editor**, esegui `supabase_setup.sql`. Le policy consentono a ogni utente autenticato di leggere e modificare soltanto le righe con il proprio `user_id`.
 
 ## 2. Configura Google OAuth
 1. In Google Cloud Console crea/configura un OAuth Client di tipo Web e abilita Google Identity/OAuth.
@@ -17,10 +17,9 @@ Questa versione mantiene scanner barcode, ricerca Open Food Facts, inserimento m
 In **Vercel → Project → Settings → Environment Variables**, aggiungi:
 - `VITE_SUPABASE_URL` = Project URL Supabase
 - `VITE_SUPABASE_ANON_KEY` = publishable/anon key
-- `VITE_ALLOWED_EMAIL` = la tua email Google, in minuscolo
 - Mantieni `OPENAI_API_KEY` già usata dall'endpoint di analisi foto.
 
-Aggiungi le prime tre variabili anche in `.env.local` se lavori in locale. Non pubblicare `.env.local` su GitHub. Le chiavi Supabase publishable/anon sono progettate per il client, ma la sicurezza dei dati dipende dalle policy RLS incluse nello script SQL. Non inserire mai una chiave `service_role` nel frontend.
+Aggiungi le prime due variabili Supabase anche in `.env.local` se lavori in locale. Non pubblicare `.env.local` su GitHub. Le chiavi Supabase publishable/anon sono progettate per il client, ma la sicurezza dei dati dipende dalle policy RLS incluse nello script SQL. Non inserire mai una chiave `service_role` nel frontend.
 
 ## 4. Redirect OAuth
 Nel client Google, usa il callback Supabase come URI autorizzato. In Supabase, il sito Vercel e localhost devono essere URL di redirect consentiti. Dopo aver aggiunto le variabili su Vercel, fai un nuovo deploy.
@@ -31,8 +30,8 @@ Al primo login, se il database non contiene ancora giornate, l'app prova a impor
 ## 6. Calendario
 Il calendario mensile evidenzia i giorni con alimenti registrati. Selezionando una data, la dashboard e il diario mostrano i dati di quella giornata; i dati vengono salvati nella tabella `daily_logs`.
 
-## 7. Aggiungere utenti in futuro
-Lo schema contiene `user_id` e policy RLS per isolare le righe. In questa prima configurazione, lo script SQL limita le operazioni all'email approvata. Quando vorrai aggiungere altri utenti, andranno aggiornate deliberatamente le policy di accesso (meglio tramite una tabella di utenti autorizzati gestita da amministratore) e la logica di accesso; non basta rimuovere il controllo dalla schermata.
+## 7. Più utenti Google
+Qualsiasi utente che riesce ad autenticarsi con Google può usare l'app. Le policy RLS limitano ogni operazione alle righe in cui `user_id = auth.uid()`, così gli utenti non possono leggere o modificare i dati degli altri. Per un database già esistente, esegui una sola volta `supabase_multiuser_migration.sql` in Supabase → SQL Editor. Non rieseguire lo script di setup per una migrazione: usa il file di migrazione, che sostituisce solo le policy e non elimina i dati.
 
 ## Test consigliato
 1. Verifica Google Login sul dominio di produzione.

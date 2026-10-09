@@ -29,7 +29,6 @@ const load = (key, fallback) => {
 }
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const allowedEmail = (import.meta.env.VITE_ALLOWED_EMAIL || '').trim().toLowerCase()
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
 function App() {
@@ -45,15 +44,12 @@ function App() {
   const signIn = async () => {
     setAuthError('')
     if (!supabase) { setAuthError('Configura VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nelle variabili d’ambiente.'); return }
-    if (!allowedEmail) { setAuthError('Per proteggere l’accesso, imposta VITE_ALLOWED_EMAIL con la tua email Google prima di accedere.'); return }
     const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
     if (error) setAuthError(error.message)
   }
   if (authLoading) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Controllo della sessione in corso…</p></div></div>
   if (!supabase) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Per attivare login e database, configura le variabili Supabase.</p><p className="auth-help">Apri il file <code>.env.example</code> nel progetto e segui la guida SUPABASE_SETUP.md.</p></div></div>
-  if (!allowedEmail) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><h1>NutriDay</h1><p>Prima di accedere, configura <code>VITE_ALLOWED_EMAIL</code> con la tua email Google e applica la stessa email nelle policy RLS dello script SQL.</p><p className="auth-foot">Questo passaggio limita l'accesso al tuo account.</p></div></div>
   if (!session) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark auth-logo"><Leaf size={25}/></div><div className="eyebrow">IL TUO DIARIO PERSONALE</div><h1>NutriDay</h1><p>Accedi per ritrovare il tuo diario alimentare, da qualsiasi dispositivo.</p><button className="google-login" onClick={signIn}><GoogleMark/> Continua con Google</button>{authError && <p className="error-message">{authError}</p>}<p className="auth-foot">Accesso personale protetto · Dati sincronizzati con Supabase</p></div></div>
-  if (session.user.email?.toLowerCase() !== allowedEmail) return <div className="auth-screen"><div className="auth-card"><h1>Accesso non autorizzato</h1><p>Questo account Google non è autorizzato a usare questa istanza di NutriDay.</p><button className="google-login" onClick={() => supabase.auth.signOut()}>Esci</button></div></div>
   return <DiaryApp session={session} supabase={supabase} onSignOut={() => supabase.auth.signOut()} />
 }
 function GoogleMark() { return <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 3.01 13.22l7.98 6.19C12.88 13.72 18.02 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.9 46.98 31.7 46.98 24.55z"/><path fill="#FBBC05" d="M10.99 28.59A14.4 14.4 0 0 1 10.25 24c0-1.59.27-3.13.74-4.59l-7.98-6.19A23.9 23.9 0 0 0 .02 24c0 3.87.93 7.53 2.99 10.78l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.14 1.44-4.88 2.3-8.17 2.3-5.98 0-11.12-4.22-13.01-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> }
