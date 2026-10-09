@@ -202,7 +202,7 @@ function App() {
         </div>
       </section>
 
-      <section className="quick-actions"><div><h3>Aggiungi al tuo diario</h3><p>Registra quello che hai mangiato in pochi secondi.</p></div><div className="action-buttons"><button className="photo-button" onClick={() => { setModal('photo'); setPhoto(null); setAnalysis(null); setError('') }}><Camera size={18}/> Fotografa un piatto <Sparkles size={15}/></button><button className="barcode-button" onClick={() => { setModal('barcode'); setBarcode(''); setBarcodeProduct(null); setScannerError('') }}><Barcode size={18}/> Scansiona codice</button><button className="add-button" onClick={() => openAdd('Colazione')}><Plus size={18}/> Aggiungi alimento</button></div></section>
+      <section className="quick-actions"><div><h3>Aggiungi al tuo diario</h3><p>Registra quello che hai mangiato in pochi secondi.</p></div><div className="action-buttons"><button className="barcode-button" onClick={() => { setModal('barcode'); setBarcode(''); setBarcodeProduct(null); setScannerError('') }}><Barcode size={18}/> Scansiona codice</button><button className="add-button" onClick={() => openAdd('Colazione')}><Plus size={18}/> Aggiungi alimento</button></div></section>
 
       <section className="diary-section"><div className="section-heading"><div><h3>Diario alimentare</h3><p>Quello che hai mangiato durante la giornata.</p></div><span className="entry-count">{dayLogs.length} {dayLogs.length === 1 ? 'alimento' : 'alimenti'}</span></div>
         <div className="meal-list">{mealTypes.map((type, idx) => {
@@ -241,7 +241,7 @@ function App() {
           <p className="modal-intro">Inquadra il codice a barre della confezione oppure digita il numero sotto. Cercheremo il prodotto nel database Open Food Facts.</p>
           <div className="scanner-frame"><video ref={videoRef} muted playsInline/><div className="scanner-overlay"><span/></div></div>
           <button className="secondary-full" onClick={startScanner}><Camera size={17}/> Attiva fotocamera e scansiona</button>
-          <div className="barcode-entry"><label className="field-label">Codice a barre (EAN)</label><div className="barcode-input-row"><input className="field" inputMode="numeric" value={barcode} onChange={e => setBarcode(e.target.value.replace(/\D/g, '').slice(0,14))} placeholder="Es. 3017624010701"/><button className="primary-search" disabled={barcodeLoading} onClick={() => lookupBarcode()}>{barcodeLoading ? 'Cerco…' : <Search size={17}/>}</button></div></div>
+          <div className="barcode-entry"><label className="field-label">Codice a barre (EAN)</label><div className="barcode-input-row"><input className="field" inputMode="numeric" value={barcode} onChange={e => setBarcode(e.target.value.replace(/\D/g, '').slice(0,14))} onKeyDown={e => { if (e.key === 'Enter') lookupBarcode(); }} placeholder="Es. 3017624010701"/><button className="primary-search" disabled={barcodeLoading} onClick={() => lookupBarcode()}>{barcodeLoading ? 'Cerco…' : <Search size={17}/>}</button></div></div>
           {scannerError && <p className="error-message">{scannerError}</p>}
           {barcodeProduct && <div className="barcode-product">
             <div className="barcode-product-head">{barcodeProduct.image && <img src={barcodeProduct.image} alt=""/>}<div><span className="eyebrow">PRODOTTO TROVATO</span><h3>{barcodeProduct.name}</h3>{barcodeProduct.brand && <p>{barcodeProduct.brand}</p>}{barcodeProduct.quantity && <small>Confezione: {barcodeProduct.quantity}</small>}</div></div>
