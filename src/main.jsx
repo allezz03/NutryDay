@@ -271,6 +271,12 @@ function DiaryApp({ session, supabase, onSignOut }) {
       <button className="nav-item" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={18}/> I tuoi obiettivi</button>
       <div className="sidebar-bottom"><div className="side-tip"><Sparkles size={18}/><b>Un passo alla volta</b><p>La costanza conta più della perfezione.</p></div><div className="privacy-note"><span className="privacy-dot"/> Diario sincronizzato in modo protetto</div></div>
     </aside>
+    <nav className="mobile-nav" aria-label="Navigazione principale">
+      <button className={`mobile-nav-item ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}><Activity size={19}/><span>Riepilogo</span></button>
+      <button className={`mobile-nav-item ${page === 'calendar' ? 'active' : ''}`} onClick={() => setPage('calendar')}><CalendarDays size={19}/><span>Calendario</span></button>
+      <button className="mobile-nav-item" onClick={() => openAdd('Colazione')}><Utensils size={19}/><span>Aggiungi</span></button>
+      <button className="mobile-nav-item" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={19}/><span>Obiettivi</span></button>
+    </nav>
     <main className="main-content">
       <header className="topbar"><div><div className="eyebrow">IL TUO DIARIO ALIMENTARE</div><h1>Buongiorno {accountName} 👋</h1><p className="subheading">Prenditi cura di te, un pasto alla volta.</p></div><div className="topbar-actions"><span className="user-email">{session.user.email}</span><button className="goal-button" onClick={() => { setEditingGoals(goals); setModal('goals') }}><Settings2 size={17}/> Obiettivi</button><button className="signout-button" onClick={onSignOut} title="Esci" aria-label="Esci"><LogOut size={17}/></button></div></header>
       {dataLoading && <div className="sync-notice">Caricamento del diario dal database…</div>}

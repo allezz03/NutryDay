@@ -53,3 +53,23 @@ footer{border-top:1px solid #e6ece3;margin-top:32px;padding-top:18px;color:#99a4
 @media(min-width:1450px){.main-content{padding-top:44px}.overview-grid{gap:20px}.calorie-card,.macro-card{padding:30px 34px}.meal-list{gap:15px}}
 @media(max-width:1050px){.main-content{padding:30px 24px}.overview-grid{grid-template-columns:1fr}.calorie-card,.macro-card{min-height:unset}.calorie-illustration{right:38px}.topbar{align-items:flex-start}.topbar-actions{max-width:48%}}
 @media(max-width:650px){.sidebar{padding:13px 17px;background:#fff}.main-content{padding:24px 15px 22px}.topbar{align-items:flex-start;gap:12px;margin-bottom:24px}.topbar h1{font-size:25px}.topbar-actions{max-width:none;gap:6px}.goal-button{min-width:38px;justify-content:center}.date-row{align-items:flex-start;flex-direction:column;gap:12px}.date-controls{align-self:stretch;justify-content:center}.overview-grid{gap:13px}.calorie-card,.macro-card{padding:20px;border-radius:18px}.calorie-main{margin:21px 0 16px}.calorie-main strong{font-size:38px}.calorie-illustration{right:12px;bottom:2px}.calorie-bottom{flex-direction:row;align-items:center}.percent-label{max-width:120px;text-align:right}.macro-list{gap:18px}.quick-actions{padding:19px;margin:20px 0 26px;border-radius:17px}.action-buttons{flex-direction:column;width:100%}.action-buttons button{width:100%}.meal-card{padding:0 12px;border-radius:14px}.meal-header{min-height:69px}.food-entry{gap:8px}.food-info span{line-height:1.5}.food-kcal{white-space:nowrap}.section-heading h3{font-size:18px}}
+
+
+/* Navigazione mobile: rende sempre raggiungibili dashboard e calendario */
+.mobile-nav{display:none}
+@media(max-width:650px){
+  .mobile-nav{position:fixed;z-index:20;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:7px;background:rgba(255,255,255,.96);border:1px solid #e3ebe0;border-radius:18px;box-shadow:0 10px 35px rgba(30,55,35,.16);backdrop-filter:blur(16px)}
+  .mobile-nav-item{min-width:0;min-height:51px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:12px;background:transparent;color:#829084;font-size:9px;font-weight:650;padding:5px 2px;white-space:nowrap}
+  .mobile-nav-item.active{background:#eaf3e9;color:#286744}
+  .mobile-nav-item svg{flex-shrink:0}
+  .main-content{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .calendar-page{min-height:unset;padding:15px 12px;border-radius:17px}
+  .calendar-page .calendar-heading h3{font-size:18px}
+  .calendar-page .calendar-heading p{max-width:100%;font-size:10px}
+  .calendar-page .calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .calendar-page .calendar-day,.calendar-page .calendar-empty{min-height:clamp(37px,10vw,48px)}
+  .calendar-page .calendar-day{border-radius:8px;font-size:11px}
+  .calendar-page .calendar-weekday{font-size:9px;padding:8px 0}
+  .calendar-page .calendar-legend{flex-direction:column;gap:10px;line-height:1.5}
+  .calendar-page .calendar-legend button{text-align:left;padding:4px 0}
+}
