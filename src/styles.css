@@ -73,3 +73,48 @@ footer{border-top:1px solid #e6ece3;margin-top:32px;padding-top:18px;color:#99a4
   .calendar-page .calendar-legend{flex-direction:column;gap:10px;line-height:1.5}
   .calendar-page .calendar-legend button{text-align:left;padding:4px 0}
 }
+
+
+/* Scanner UX: più chiaro e comodo soprattutto su smartphone */
+.scanner-frame{min-height:220px;display:flex;align-items:center;justify-content:center;isolation:isolate}
+.scanner-frame video{width:100%;height:220px;max-height:280px;object-fit:cover}
+.scanner-frame:not(.scanner-live) video{opacity:.08}
+.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#dcebdd;text-align:center;padding:20px;pointer-events:none}
+.scanner-placeholder b{font-size:13px;color:#fff}
+.scanner-placeholder span{font-size:11px;color:#c5d3c7}
+.scanner-live .scanner-overlay span{height:68px;width:82%;border-color:#b4e7a9;box-shadow:0 0 0 999px #101a1640,0 0 20px #b4e7a955}
+.scanner-start{margin-top:10px;min-height:48px;font-size:13px}
+.portion-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 9px}
+.portion-shortcuts button{border:1px solid #dfe8dc;background:#fff;color:#607362;border-radius:9px;padding:10px 4px;font-size:12px;font-weight:700}
+.portion-shortcuts button.active{background:#eaf3e8;border-color:#8fb895;color:#286744;box-shadow:inset 0 0 0 1px #8fb895}
+.portion-preview{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;padding:12px 13px;border-radius:10px;background:#f2f7f0;color:#718071;font-size:11px}
+.portion-preview b{font-size:16px;color:#286744;white-space:nowrap}
+.scan-another{min-height:44px}
+@media(max-width:650px){.scanner-frame{min-height:200px}.scanner-frame video{height:200px}.barcode-product{padding:12px}.barcode-product-head img{width:56px;height:56px}.portion-shortcuts button{min-height:42px;font-size:13px}.portion-preview{padding:12px}.scanner-start{min-height:48px}}
+
+/* NutriDay visual refinement — premium, calm and consistent */
+:root{--green:#2f6b47;--green-dark:#234f36;--muted:#7f8c80;--line:#e5ebe2;--paper:#fff;--canvas:#f6f8f4;--radius-card:22px}
+html{background:var(--canvas);scroll-behavior:smooth}
+body{background:radial-gradient(ellipse at 88% 0%,rgba(224,239,218,.36),transparent 34%),var(--canvas);color:#293b2e;-webkit-font-smoothing:antialiased}
+button{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
+button:active{transform:translateY(1px)}
+.sidebar{background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-right-color:#e7ece4}
+.brand{padding-bottom:40px}.brand-mark{box-shadow:0 5px 14px rgba(47,107,71,.08)}
+.nav-item{border-radius:12px;min-height:44px}.nav-item:hover{background:#f5f8f3;color:#396c49}.nav-item.active{box-shadow:inset 3px 0 #397751;background:#edf5eb}
+.main-content{padding-top:42px}.topbar h1{letter-spacing:-1.15px}.subheading{font-size:13px;line-height:1.65}
+.goal-button,.today-button{transition:all .18s ease}.goal-button:hover,.today-button:hover{border-color:#cbdcc8;box-shadow:0 5px 14px rgba(39,83,48,.07);transform:translateY(-1px)}
+.overview-grid{align-items:stretch}.calorie-card,.macro-card{border-radius:24px;box-shadow:0 9px 32px rgba(35,65,42,.045);transition:box-shadow .2s ease,border-color .2s ease}.calorie-card:hover,.macro-card:hover{border-color:#dce7d8;box-shadow:0 12px 35px rgba(35,65,42,.065)}
+.calorie-card{background:radial-gradient(circle at 100% 0%,rgba(222,239,215,.8),transparent 43%),linear-gradient(145deg,#fff 0%,#fbfdf9 100%)}
+.calorie-main strong{font-variant-numeric:tabular-nums}.progress-track>div{will-change:width}.macro-label strong,.calorie-bottom b{font-variant-numeric:tabular-nums}
+.quick-actions{box-shadow:0 5px 20px rgba(43,79,48,.025)}.action-buttons button{min-height:46px}.add-button{box-shadow:0 5px 14px rgba(40,103,68,.16)}
+.section-heading{align-items:flex-end}.meal-card{overflow:hidden}.meal-header{gap:12px}.meal-add{transition:transform .18s ease,background .18s ease}.meal-add:hover{transform:scale(1.04)}
+.food-entry{transition:background-color .15s ease}.food-entry:hover{background:linear-gradient(90deg,#fbfdf9,transparent);padding-left:4px;padding-right:3px}
+.calendar-card,.calendar-page{background:#fff;border:1px solid #e4ebe1;border-radius:24px;box-shadow:0 10px 32px rgba(35,65,42,.045);padding:clamp(20px,3vw,30px)}
+.calendar-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:23px}.calendar-heading h3{font:800 21px Manrope,sans-serif;letter-spacing:-.55px;color:#2b3d30;margin:7px 0}.calendar-heading p{font-size:12px;line-height:1.6;color:#849084;margin:0;max-width:470px}.calendar-month-controls{display:flex;align-items:center;gap:10px;background:#f7faf5;border:1px solid #e7eee3;padding:5px;border-radius:13px;white-space:nowrap}.calendar-month-controls button{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:9px;background:#fff;color:#4e6d54}.calendar-month-controls button:hover{background:#eaf3e7}.calendar-month-controls b{font-size:12px;color:#435847;min-width:105px;text-align:center}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.calendar-weekday{text-align:center;font-size:10px;font-weight:800;letter-spacing:.4px;color:#93a092;padding:10px 0}.calendar-day,.calendar-empty{min-height:clamp(54px,6vw,76px)}.calendar-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid #edf1e9;background:#fff;border-radius:14px;color:#506052;font-weight:650;font-size:13px}.calendar-day:hover{border-color:#a9c8a4;background:#f7fbf5}.calendar-day.has-entries{background:#f1f7ed;border-color:#e2eddd;color:#2f6b47}.calendar-day i,.calendar-legend i{width:5px;height:5px;border-radius:50%;background:#5a9560;display:block}.calendar-day.selected{background:#2f6b47;border-color:#2f6b47;color:white;box-shadow:0 5px 12px rgba(47,107,71,.2)}.calendar-day.selected i{background:#d8f0c9}.calendar-day.is-today:not(.selected){box-shadow:inset 0 0 0 1px #7daa76}.calendar-legend{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #eef2eb;margin-top:20px;padding-top:17px;color:#819082;font-size:11px}.calendar-legend>span{display:flex;align-items:center;gap:8px}.calendar-legend button{border:0;background:transparent;color:#397751;font-weight:700;font-size:11px;padding:8px;border-radius:8px}.calendar-legend button:hover{background:#f0f6ed}
+.modal{border:1px solid rgba(228,235,225,.9);box-shadow:0 30px 90px rgba(23,42,28,.22)}.modal-head{padding:25px 26px 19px}.modal-body{padding:22px 26px 26px}.field,.search-field{min-height:44px;border-color:#dfe7dc;border-radius:11px}.field:focus-within,.search-field:focus-within{border-color:#91b68e;box-shadow:0 0 0 3px rgba(103,157,101,.12)}.primary-full{background:#2f6b47}.primary-full:hover{background:#24583a;box-shadow:0 5px 14px rgba(47,107,71,.15)}
+.auth-card{border:1px solid #e4ebe1!important;border-radius:25px!important;box-shadow:0 24px 75px rgba(35,65,42,.10)!important}
+@media(max-width:1050px){.main-content{padding-top:30px}.calendar-grid{gap:6px}.calendar-day,.calendar-empty{min-height:58px}}
+@media(max-width:650px){
+  body{background:var(--canvas)}.main-content{padding:22px 14px calc(112px + env(safe-area-inset-bottom))}.topbar{margin-bottom:22px}.topbar h1{font-size:26px}.overview-grid{gap:12px}.calorie-card,.macro-card{border-radius:20px;padding:20px}.calorie-main strong{font-size:39px}.quick-actions{border-radius:19px;padding:18px;margin:19px 0 25px}.meal-list{grid-template-columns:minmax(0,1fr);gap:11px}.meal-card{border-radius:16px;padding:0 14px}.meal-header{min-height:72px}.calendar-page{padding:16px 12px;border-radius:20px}.calendar-heading{flex-direction:column;gap:14px;margin-bottom:16px}.calendar-heading h3{font-size:19px}.calendar-heading p{font-size:11px}.calendar-month-controls{align-self:stretch;justify-content:space-between}.calendar-month-controls b{flex:1}.calendar-grid{gap:4px}.calendar-weekday{font-size:9px;padding:7px 0}.calendar-day,.calendar-empty{min-height:clamp(39px,11.5vw,52px)}.calendar-day{border-radius:10px;font-size:11px;gap:5px}.calendar-legend{align-items:flex-start;flex-direction:column;gap:8px}.calendar-legend button{padding:8px 0}.modal-backdrop{padding:10px;align-items:end}.modal{width:100%;max-height:88dvh;border-radius:22px 22px 16px 16px}.modal-head{padding:20px 20px 15px}.modal-body{padding:18px 20px 22px}.food-search-results{max-height:28vh}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

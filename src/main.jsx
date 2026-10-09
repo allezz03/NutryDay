@@ -83,6 +83,8 @@ function DiaryApp({ session, supabase, onSignOut }) {
   const [barcode, setBarcode] = useState('')
   const [barcodeLoading, setBarcodeLoading] = useState(false)
   const [barcodeProduct, setBarcodeProduct] = useState(null)
+  const [barcodePortion, setBarcodePortion] = useState('100')
+  const [scannerActive, setScannerActive] = useState(false)
   const [scannerError, setScannerError] = useState('')
 
   useEffect(() => {
@@ -215,19 +217,39 @@ function DiaryApp({ session, supabase, onSignOut }) {
   const startScanner = async () => {
     setScannerError('')
     try {
+      try { scannerControls.current?.stop() } catch {}
+      scannerControls.current = null
+      if (!videoRef.current) throw new Error('Fotocamera non disponibile in questa schermata.')
       const reader = new BrowserMultiFormatReader()
-      scannerControls.current = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
-        if (result) {
-          const code = result.getText()
-          setBarcode(code)
-          try { scannerControls.current?.stop() } catch {}
-          scannerControls.current = null
-          lookupBarcode(code)
+      scannerControls.current = await reader.decodeFromConstraints(
+        { audio: false, video: { facingMode: { ideal: 'environment' } } },
+        videoRef.current,
+        result => {
+          if (result) {
+            const code = result.getText()
+            setBarcode(code)
+            try { scannerControls.current?.stop() } catch {}
+            scannerControls.current = null
+            setScannerActive(false)
+            lookupBarcode(code)
+          }
         }
-      })
-    } catch {
-      setScannerError('Non riesco ad aprire la fotocamera. Controlla i permessi del browser oppure inserisci il codice manualmente.')
+      )
+      setScannerActive(true)
+    } catch (e) {
+      setScannerActive(false)
+      setScannerError(e?.message || 'Non riesco ad aprire la fotocamera. Controlla i permessi del browser oppure inserisci il codice manualmente.')
     }
+  }
+  const resetBarcodeScan = () => {
+    try { scannerControls.current?.stop() } catch {}
+    scannerControls.current = null
+    setBarcodeProduct(null)
+    setBarcode('')
+    setBarcodePortion('100')
+    setScannerError('')
+    setScannerActive(false)
+    startScanner()
   }
   const openAdd = type => { setMeal(type); setModal('add'); setQuery(''); setSelected(null); setError('') }
   const choosePhoto = file => {
@@ -299,7 +321,7 @@ function DiaryApp({ session, supabase, onSignOut }) {
         </div>
       </section>
 
-      <section className="quick-actions"><div><h3>Aggiungi al tuo diario</h3><p>Registra quello che hai mangiato in pochi secondi.</p></div><div className="action-buttons"><button className="barcode-button" onClick={() => { setModal('barcode'); setBarcode(''); setBarcodeProduct(null); setScannerError('') }}><Barcode size={18}/> Scansiona codice</button><button className="add-button" onClick={() => openAdd('Colazione')}><Plus size={18}/> Aggiungi alimento</button></div></section>
+      <section className="quick-actions"><div><h3>Aggiungi al tuo diario</h3><p>Registra quello che hai mangiato in pochi secondi.</p></div><div className="action-buttons"><button className="barcode-button" onClick={() => { setModal('barcode'); setBarcode(''); setBarcodeProduct(null); setBarcodePortion('100'); setScannerError(''); setScannerActive(false) }}><Barcode size={18}/> Scansiona codice</button><button className="add-button" onClick={() => openAdd('Colazione')}><Plus size={18}/> Aggiungi alimento</button></div></section>
 
       <section className="diary-section"><div className="section-heading"><div><h3>Diario alimentare</h3><p>Quello che hai mangiato durante la giornata.</p></div><span className="entry-count">{dayLogs.length} {dayLogs.length === 1 ? 'alimento' : 'alimenti'}</span></div>
         <div className="meal-list">{mealTypes.map((type, idx) => {
@@ -337,17 +359,19 @@ function DiaryApp({ session, supabase, onSignOut }) {
         </div>}
         {modal === 'barcode' && <div className="modal-body">
           <p className="modal-intro">Inquadra il codice a barre della confezione oppure digita il numero sotto. Cercheremo il prodotto nel database Open Food Facts.</p>
-          <div className="scanner-frame"><video ref={videoRef} muted playsInline/><div className="scanner-overlay"><span/></div></div>
-          <button className="secondary-full" onClick={startScanner}><Camera size={17}/> Attiva fotocamera e scansiona</button>
+          <div className={`scanner-frame ${scannerActive ? 'scanner-live' : ''}`}><video ref={videoRef} muted playsInline/><div className="scanner-overlay"><span/></div>{!scannerActive && !barcodeProduct && !barcodeLoading && <div className="scanner-placeholder"><Camera size={27}/><b>Inquadra il codice a barre</b><span>Usa la fotocamera posteriore del telefono</span></div>}</div>
+          <button className="primary-full scanner-start" onClick={startScanner}><Camera size={17}/> {scannerActive ? 'Fotocamera attiva · inquadra il codice' : 'Apri la fotocamera e scansiona'}</button>
+          {scannerActive && <button className="secondary-full" onClick={() => { try { scannerControls.current?.stop() } catch {}; scannerControls.current = null; setScannerActive(false) }}>Ferma fotocamera</button>}
           <div className="barcode-entry"><label className="field-label">Codice a barre (EAN)</label><div className="barcode-input-row"><input className="field" inputMode="numeric" value={barcode} onChange={e => setBarcode(e.target.value.replace(/\D/g, '').slice(0,14))} onKeyDown={e => { if (e.key === 'Enter') lookupBarcode(); }} placeholder="Es. 3017624010701"/><button className="primary-search" disabled={barcodeLoading} onClick={() => lookupBarcode()}>{barcodeLoading ? 'Cerco…' : <Search size={17}/>}</button></div></div>
           {scannerError && <p className="error-message">{scannerError}</p>}
           {barcodeProduct && <div className="barcode-product">
             <div className="barcode-product-head">{barcodeProduct.image && <img src={barcodeProduct.image} alt=""/>}<div><span className="eyebrow">PRODOTTO TROVATO</span><h3>{barcodeProduct.name}</h3>{barcodeProduct.brand && <p>{barcodeProduct.brand}</p>}{barcodeProduct.quantity && <small>Confezione: {barcodeProduct.quantity}</small>}</div></div>
             <div className="nutrition-source">Valori dichiarati per 100 g / 100 ml · Fonte: Open Food Facts</div>
             <div className="nutrition-grid">{[['Calorie',barcodeProduct.per100.calories,'kcal'],['Proteine',barcodeProduct.per100.protein_g,'g'],['Carboidrati',barcodeProduct.per100.carbs_g,'g'],['Zuccheri',barcodeProduct.per100.sugars_g,'g'],['Grassi',barcodeProduct.per100.fat_g,'g'],['Saturi',barcodeProduct.per100.saturated_fat_g,'g'],['Fibre',barcodeProduct.per100.fiber_g,'g'],['Sale',barcodeProduct.per100.salt_g,'g']].filter(([,v]) => v !== null).map(([label,value,unit]) => <div key={label}><span>{label}</span><b>{Math.round(Number(value)*10)/10} {unit}</b></div>)}</div>
-            <label className="field-label">Quantità consumata in grammi / ml</label><input id="barcode-portion" className="field" type="number" min="1" defaultValue="100"/>
+            <label className="field-label">Quanto ne hai consumato?</label><div className="portion-shortcuts">{[30, 100, 150, 200].map(amount => <button type="button" key={amount} className={Number(barcodePortion) === amount ? 'active' : ''} onClick={() => setBarcodePortion(String(amount))}>{amount} g</button>)}</div><input id="barcode-portion" className="field" type="number" min="1" value={barcodePortion} onChange={e => setBarcodePortion(e.target.value)} inputMode="decimal"/>
+            <div className="portion-preview"><span>Calorie stimate per {Math.max(1, Number(barcodePortion) || 100)} g</span><b>{fmt((Number(barcodeProduct.per100.calories) || 0) * (Math.max(1, Number(barcodePortion) || 100) / 100))} kcal</b></div>
             <label className="field-label">Aggiungi a</label><select className="field" value={meal} onChange={e => setMeal(e.target.value)}>{mealTypes.map(m => <option key={m}>{m}</option>)}</select>
-            <button className="primary-full" onClick={() => { const amount = Math.max(1, Number(document.getElementById('barcode-portion')?.value) || 100); const n = barcodeProduct.per100; addLog({ name: barcodeProduct.name, portion_g: amount, calories: n.calories, protein_g: n.protein_g, carbs_g: n.carbs_g, fat_g: n.fat_g, basePortion_g: 100, source: 'barcode' }) }}><Check size={17}/> Aggiungi al diario</button>
+            <button className="primary-full" onClick={() => { const amount = Math.max(1, Number(barcodePortion) || 100); const n = barcodeProduct.per100; addLog({ name: barcodeProduct.name, portion_g: amount, calories: n.calories, protein_g: n.protein_g, carbs_g: n.carbs_g, fat_g: n.fat_g, basePortion_g: 100, source: 'barcode' }) }}><Check size={17}/> Aggiungi al diario</button><button className="secondary-full scan-another" onClick={resetBarcodeScan}><Barcode size={17}/> Scansiona un altro prodotto</button>
           </div>}
           <p className="disclaimer">La disponibilità e la completezza dei dati dipendono dal database e dalle informazioni inserite per ciascun prodotto. Controlla sempre l’etichetta della confezione.</p>
         </div>}
